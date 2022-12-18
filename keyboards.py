@@ -1,14 +1,27 @@
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-language_keyboard = InlineKeyboardMarkup(
+main_keyboard = InlineKeyboardMarkup(
     [
         [
             InlineKeyboardButton(
-                text='🇬🇧 English', callback_data='english_welcome_text'
+                text='Video 🎬', callback_data='video_callback_data'
             ),
             InlineKeyboardButton(
-                text='🇷🇺 Русский', callback_data='russian_welcome_text'
+                text='Audio 🎵', callback_data='audio_callback_data'
             )
         ],
+        [
+            InlineKeyboardButton(
+                text='Playlist video 🎞', callback_data='playlist_video_callback_data'
+            ),
+            InlineKeyboardButton(
+                text='Playlist audio 🎶', callback_data='playlist_audio_callback_data'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Thumbnail photo 🎆', callback_data='thumbnail_callback_data'
+            )
+        ]
     ]
 )
