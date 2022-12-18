@@ -1,0 +1,7 @@
+.idea
+.env
+.git
+__pycache__/
+secret.py
+YoutubeDownloader.session
+YoutubeDownloader.session-journal
