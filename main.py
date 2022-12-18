@@ -25,7 +25,7 @@ bot = Client(
 async def welcome(client: Client, message: Message):
     await message.reply_text(
         text=f"Hello, {message.from_user.first_name}!\n\n" +
-             welcome_text['english'],
+             welcome_text,
         disable_web_page_preview=False,
     )
 
