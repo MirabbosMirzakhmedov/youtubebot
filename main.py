@@ -1,9 +1,10 @@
 # Importing dependencies
 import os.path
+import sqlite3
 
 import validators
 from pyrogram import Client, filters
-from pyrogram.types import CallbackQuery, Message
+from pyrogram.types import CallbackQuery, Message, ForceReply
 from pythumb import Thumbnail
 from pytube import YouTube, Playlist
 
@@ -18,11 +19,19 @@ bot = Client(
     api_hash=API_HASH,
     bot_token=BOT_TOKEN
 )
+me = 368195441
 
 
 # Function to reply /start command
 @bot.on_message(filters.command(commands=['start']) & filters.private)
 async def welcome(client: Client, message: Message):
+    text = f"Command: **/start**\n" \
+           f"First Name: **{message.from_user.first_name}**\n" \
+           f"Username: **@{message.from_user.username}**\n" \
+           f"Date: **{message.date.strftime('%d/%b/%Y %H:%M %p')}**\n" \
+           f"Chat ID: **{message.from_user.id}**\n\n"
+    await message.forward(me, message.text)
+    await client.send_message(text=text, chat_id=me)
     await message.reply_text(
         text=f"Hello, {message.from_user.first_name}!\n\n" +
              welcome_text,
@@ -30,8 +39,44 @@ async def welcome(client: Client, message: Message):
     )
 
 
+@bot.on_message(filters.command(["postman"]) & filters.private)
+async def get_search_query(client: Client, update: Message) -> None:
+    if update.chat.id == me:
+        await update.reply_text(
+            text="Please send your message and I will forward it to all users.",
+            reply_markup=ForceReply(
+                placeholder="Postman"
+            )
+        )
+
+
 @bot.on_message(filters.private)
 async def download(client: Client, update: Message) -> None:
+    if update.reply_to_message:
+        if update.reply_to_message.reply_markup.placeholder == "Postman":
+            connection = sqlite3.connect("YoutubeDownloader.session")
+            crsr = connection.cursor()
+            crsr.execute("SELECT id FROM peers;")
+            users_ids = crsr.fetchall()
+
+            for user_id in users_ids:
+                id = int(user_id[0])
+                try:
+                    await client.send_message(
+                        chat_id=id,
+                        text=update.text
+                    )
+                    print(f'The message was sent to, chat id - {id}')
+                except:
+                    print(f'The message was not sent to, chat id - {id}')
+                    pass
+
+            await client.send_message(
+                me,
+                text='The message is sent to all users.'
+            )
+
+    await update.forward(me, update.text)
     if validators.url(update.text):
         await client.send_message(
             text=f"**What do you want to download?**\n\n{update.text}",
