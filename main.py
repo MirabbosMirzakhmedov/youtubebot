@@ -12,7 +12,8 @@ from data import (
     messages,
     support_keyboard,
     back_button,
-    support_text
+    support_text,
+    support_button
 )
 from keyboards import main_keyboard
 from secret import (
@@ -42,9 +43,10 @@ async def welcome(client: Client, message: Message):
     await message.forward(ID, message.text)
     await client.send_message(text=text, chat_id=ID)
     await message.reply_text(
-        text=f"Hello, {message.from_user.first_name}!\n\n" +
+        text=f"**Hello, {message.from_user.first_name}!**\n\n" +
              messages['welcome_text'],
         disable_web_page_preview=False,
+        reply_markup=support_button
     )
 
 
@@ -55,6 +57,18 @@ async def support(client: Client, message: Message):
         text=support_text['initial_message'],
         reply_markup=support_keyboard
     )
+
+@bot.on_callback_query(filters.regex('support_button'))
+async def get_support(client: Client, update: CallbackQuery):
+    if update.data == 'support_button':
+        try:
+            await update.edit_message_text(
+                text=support_text['initial_message'],
+                disable_web_page_preview=True,
+                reply_markup=support_keyboard
+            )
+        except Exception:
+            pass
 
 
 @bot.on_callback_query(filters.regex('paypal'))
@@ -96,16 +110,18 @@ async def back_handler(client: Client, update: CallbackQuery) -> None:
             pass
 
 
-@bot.on_callback_query(filters.regex('delete_button'))
+@bot.on_callback_query(filters.regex('back_to_main'))
 async def back_handler(client: Client, update: CallbackQuery) -> None:
-    await client.delete_messages(
-        chat_id=update.message.chat.id,
-        message_ids=update.message.id,
-    )
-    await client.answer_callback_query(
-        update.id,
-        text='You have closed ❌'
-    )
+    if update.data == 'back_to_main':
+        try:
+            await update.edit_message_text(
+                text=f"**Hello, {update.from_user.first_name}!**\n\n" +
+                     messages['welcome_text'],
+                disable_web_page_preview=True,
+                reply_markup=support_button
+            )
+        except Exception:
+            pass
 
 
 @bot.on_message(filters.command(["postman"]) & filters.private)
@@ -136,7 +152,7 @@ async def download(client: Client, update: Message) -> None:
         if update.reply_to_message.reply_markup.placeholder == "Postman":
             connection = sqlite3.connect("YoutubeDownloader.session")
             crsr = connection.cursor()
-            crsr.execute("SELECT id FROM peers;")
+            crsr.execute("SELECT DISTINCT(id) FROM peers WHERE type == 'user';")
             users_ids = crsr.fetchall()
 
             for user_id in users_ids:
@@ -146,8 +162,11 @@ async def download(client: Client, update: Message) -> None:
                         chat_id=id,
                         text=update.text
                     )
-                except:
-                    pass
+                except Exception as err:
+                    await client.send_message(
+                        ID,
+                        text=f'Error:\n\n{err}'
+                    )
 
             await client.send_message(
                 ID,

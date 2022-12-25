@@ -1,9 +1,9 @@
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 messages = {
-    'welcome_text': '🤖This bot can help you to download anything from YouTube For Free🆓\n\n'
+    'welcome_text': '🤖This bot can help you to download anything from YouTube For Free!\n\n'
                     '📥Send your Youtube link here!\n\n'
-                    'Enjoy💗',
+                    '**💗Enjoy**',
     'error_message': f'🇬🇧 Error! Please send YouTube link and choose proper command.\n\n'
                      f'🇷🇺 Ошибка! Пожалуйста, отправьте ссылку на YouTube и выберите правильную команду.',
     'filesize_error': f'🇬🇧 Error! Video exceeds 2GB, we cannot send it.\n\n'
@@ -33,6 +33,15 @@ support_text = {
                        'Feel free to text and discuss your project idea 👉 @mirabbos_dev'
 }
 
+support_button = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton(
+                text='Support Us ❤️', callback_data='support_button'
+            )
+        ]
+    ]
+)
 
 support_keyboard = InlineKeyboardMarkup(
     [
@@ -46,7 +55,7 @@ support_keyboard = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(
-                text='❌ Close', callback_data='delete_button'
+                text='◀ Home', callback_data='back_to_main'
             )
         ]
     ]
