@@ -1,3 +1,5 @@
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 messages = {
     'welcome_text': '🤖This bot can help you to download anything from YouTube For Free🆓\n\n'
                     '📥Send your Youtube link here!\n\n'
@@ -17,3 +19,45 @@ messages = {
     'wrong_button': f'🇬🇧 Error! Wrong action, please choose proper command.\n\n'
                     f'🇷🇺 Ошибка! Неправильное действие, пожалуйста, выберите правильную команду.'
 }
+
+support_text = {
+    'initial_message': 'Thank you for your interest in helping this project! You can contribute in two ways:\n\n'
+                       '1. Offer your technical expertise as a developer👨🏻‍💻\n'
+                       '2. Donate money to help the developer buy a Raspberry Pi, which keeps the bot online🚀\n\n'
+                       'Your support is greatly appreciated. Thank you for helping us make this project a success!!',
+    'paypal_message': 'Thank you for showing interest!\n\n'
+                      'Your donation can help the developer purchase a Raspberry Pi, keeping the bot online and available to millions. '
+                      'Your generosity makes a difference. Thank you!\n\n'
+                      "PayPal address to donate 👉 `@mirabbosdev`",
+    'contact_message': 'Thank you for showing interest!\n\n'
+                       'Feel free to text and discuss your project idea 👉 @mirabbos_dev'
+}
+
+
+support_keyboard = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton(
+                text='PayPal 💳', callback_data='paypal_button'
+            ),
+            InlineKeyboardButton(
+                text='Contacts 👨🏻‍💻', callback_data='contact_button'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='❌ Close', callback_data='delete_button'
+            )
+        ]
+    ]
+)
+
+back_button = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton(
+                text='◀ Back', callback_data='back_button'
+            )
+        ]
+    ]
+)

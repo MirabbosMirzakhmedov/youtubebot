@@ -8,9 +8,19 @@ from pyrogram.types import CallbackQuery, Message, ForceReply
 from pythumb import Thumbnail
 from pytube import YouTube, Playlist
 
-from data import messages
+from data import (
+    messages,
+    support_keyboard,
+    back_button,
+    support_text
+)
 from keyboards import main_keyboard
-from secret import API_ID, API_HASH, BOT_TOKEN, ID
+from secret import (
+    API_ID,
+    API_HASH,
+    BOT_TOKEN,
+    ID
+)
 
 # registering the bot
 bot = Client(
@@ -38,22 +48,82 @@ async def welcome(client: Client, message: Message):
     )
 
 
+@bot.on_message(filters.command(commands=['support']) & filters.private)
+async def support(client: Client, message: Message):
+    await client.send_message(
+        chat_id=message.chat.id,
+        text=support_text['initial_message'],
+        reply_markup=support_keyboard
+    )
+
+
+@bot.on_callback_query(filters.regex('paypal'))
+async def paypal_handler(client: Client, update: CallbackQuery) -> None:
+    if update.data == 'paypal_button':
+        try:
+            await update.edit_message_text(
+                text=support_text['paypal_message'],
+                disable_web_page_preview=True,
+                reply_markup=back_button
+            )
+        except Exception:
+            pass
+
+
+@bot.on_callback_query(filters.regex('contact'))
+async def contact_handler(client: Client, update: CallbackQuery) -> None:
+    if update.data == 'contact_button':
+        try:
+            await update.edit_message_text(
+                text=support_text['contact_message'],
+                disable_web_page_preview=True,
+                reply_markup=back_button
+            )
+        except Exception:
+            pass
+
+
+@bot.on_callback_query(filters.regex('back_button'))
+async def back_handler(client: Client, update: CallbackQuery) -> None:
+    if update.data == 'back_button':
+        try:
+            await update.edit_message_text(
+                text=support_text['initial_message'],
+                disable_web_page_preview=True,
+                reply_markup=support_keyboard
+            )
+        except Exception:
+            pass
+
+
+@bot.on_callback_query(filters.regex('delete_button'))
+async def back_handler(client: Client, update: CallbackQuery) -> None:
+    await client.delete_messages(
+        chat_id=update.message.chat.id,
+        message_ids=update.message.id,
+    )
+    await client.answer_callback_query(
+        update.id,
+        text='You have closed ❌'
+    )
+
+
 @bot.on_message(filters.command(["postman"]) & filters.private)
-async def get_search_query(client: Client, update: Message) -> None:
-    if update.chat.id == ID:
+async def postman(client: Client, update: Message) -> None:
+    if update.chat.id == int(ID):
         await update.reply_text(
-            text="Please send your message and I will forward it to all users.",
+            text="Your message will be sent to everyone.",
             reply_markup=ForceReply(
                 placeholder="Postman"
             )
         )
 
 
-@bot.on_message(filters.command(["message_to"]) & filters.private)
-async def get_search_query(client: Client, update: Message) -> None:
-    if update.chat.id == ID:
+@bot.on_message(filters.command(["message"]) & filters.private)
+async def message(client: Client, update: Message) -> None:
+    if update.chat.id == int(ID):
         await update.reply_text(
-            text="Please send your message and I will forward it to one user",
+            text="First comes **chat_id** and then your **message**",
             reply_markup=ForceReply(
                 placeholder="Message to"
             )
