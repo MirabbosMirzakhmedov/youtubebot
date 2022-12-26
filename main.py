@@ -8,19 +8,18 @@ from pyrogram.types import CallbackQuery, Message, ForceReply
 from pythumb import Thumbnail
 from pytube import YouTube, Playlist
 
-from data import (
-    messages,
+from data import messages, support_text
+from keyboards import (
+    main_keyboard,
     support_keyboard,
     back_button,
-    support_text,
     support_button
 )
-from keyboards import main_keyboard
 from secret import (
     API_ID,
     API_HASH,
-    BOT_TOKEN,
-    ID
+    ID,
+    BOT_TOKEN
 )
 
 # registering the bot
@@ -57,6 +56,7 @@ async def support(client: Client, message: Message):
         text=support_text['initial_message'],
         reply_markup=support_keyboard
     )
+
 
 @bot.on_callback_query(filters.regex('support_button'))
 async def get_support(client: Client, update: CallbackQuery):
@@ -146,13 +146,69 @@ async def message(client: Client, update: Message) -> None:
         )
 
 
+@bot.on_message(filters.command(commands=['get_users']) & filters.private)
+async def get_users(client: Client, message: Message):
+    if message.chat.id == int(ID):
+        connection = sqlite3.connect("YoutubeDownloader.session")
+        crsr = connection.cursor()
+        crsr.execute("SELECT DISTINCT(id) FROM peers WHERE type == 'user';")
+        users_ids = crsr.fetchall()
+
+        await client.send_message(
+            chat_id=ID,
+            text=f"There are **{len(users_ids)}** users."
+        )
+
+
+@bot.on_message(filters.command(commands=['check_user']) & filters.private)
+async def get_check_user(client: Client, update: Message) -> None:
+    user_id = update.text.split(' ')[1]
+
+    connection = sqlite3.connect("YoutubeDownloader.session")
+    crsr = connection.cursor()
+    crsr.execute(f"SELECT * FROM peers WHERE id == {user_id};")
+    user = crsr.fetchall()
+
+    try:
+        await client.send_message(
+            chat_id=ID,
+            text=f"User ID: **{user[0][0]}**\n"
+                 f"Type: **{user[0][2]}**\n"
+                 f"Username: **{user[0][3]}**\n"
+                 f"Phone number: **{user[0][4]}**\n"
+                 f"Last updated: **{user[0][5]}**\n"
+        )
+    except Exception as err:
+        await client.send_message(
+            chat_id=ID,
+            text=f'User **{user_id}** not found in the dababase.\n\n'
+                 f'Log: **{user}**\n\n'
+                 f'Exception: **{err}**'
+        )
+
+
+@bot.on_message(filters.command(commands=['admin']) & filters.private)
+async def get_admin_menu(client: Client, message: Message):
+    if message.chat.id == int(ID):
+        await client.send_message(
+            chat_id=ID,
+            text=f"**Dear {message.chat.first_name}**\n\n"
+                 f"/start - to start the bot\n\n"
+                 f"/get_users - to count all users\n\n"
+                 f"/check_user - to check if user exists\n\n"
+                 f"/message - to send message to one user\n\n"
+                 f"/postman - to send message to all\n\n"
+        )
+
+
 @bot.on_message(filters.private)
 async def download(client: Client, update: Message) -> None:
     if update.reply_to_message:
         if update.reply_to_message.reply_markup.placeholder == "Postman":
             connection = sqlite3.connect("YoutubeDownloader.session")
             crsr = connection.cursor()
-            crsr.execute("SELECT DISTINCT(id) FROM peers WHERE type == 'user';")
+            crsr.execute(
+                "SELECT DISTINCT(id) FROM peers WHERE type == 'user';")
             users_ids = crsr.fetchall()
 
             for user_id in users_ids:
@@ -160,7 +216,8 @@ async def download(client: Client, update: Message) -> None:
                 try:
                     await client.send_message(
                         chat_id=id,
-                        text=update.text
+                        text=update.text,
+                        disable_notification=True
                     )
                 except Exception as err:
                     await client.send_message(
@@ -179,7 +236,8 @@ async def download(client: Client, update: Message) -> None:
                 try:
                     await client.send_message(
                         chat_id=chat_id,
-                        text=text
+                        text=text,
+                        disable_notification=True
                     )
                     await client.send_message(
                         chat_id=ID,
@@ -195,10 +253,11 @@ async def download(client: Client, update: Message) -> None:
     await client.send_message(chat_id=ID, text=f'Chat id: `{update.chat.id}`')
 
     if validators.url(update.text):
+
         await client.send_message(
             text=f"**What do you want to download?**\n\n{update.text}",
             chat_id=update.chat.id,
-            reply_markup=main_keyboard
+            reply_markup=main_keyboard,
         )
     else:
         await client.send_message(
@@ -442,7 +501,6 @@ async def income_handler(client: Client, update: CallbackQuery) -> None:
                                          message_ids=processing.id)
             await client.send_message(chat_id=update.message.chat.id,
                                       text=messages['error_message'])
-
 
 print('Youtube Downloader has started')
 if __name__ == "__main__":
